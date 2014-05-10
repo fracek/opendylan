@@ -232,16 +232,21 @@ dylan_value primitive_byte_allocate_filled
      dylan_value fill_value, DSINT repeated_size, DSINT repeated_size_offset,
      DBYTE repeated_fill_value)
 {
-  dylan_value* object = primitive_byte_allocate(size, repeated_size + 1);
-  instance_header_setter(class_wrapper, object);
-  primitive_fillX(object, 1, 0, number_slots, fill_value);
-  primitive_fill_bytesX(object, repeated_size_offset + 1, 0, repeated_size,
-                        repeated_fill_value);
-  ((char*)(&object[repeated_size_offset + 1]))[repeated_size] = (char)0;
-  if (repeated_size_offset > 0) {
-    object[repeated_size_offset] = I(repeated_size);
+  size = size * sizeof(D);
+  if (number_slots == 0) {
+    return primitive_alloc_s(size,
+                             class_wrapper,
+                             number_slots,
+                             fill_value);
+  } else {
+    return primitive_alloc_s_rbf(size,
+                                 class_wrapper,
+                                 number_slots,
+                                 fill_value,
+                                 repeated_size,
+                                 repeated_size_offset,
+                                 repeated_fill_value);
   }
-  return((dylan_value)object);
 }
 
 dylan_value primitive_byte_allocate_leaf_filled_terminated
@@ -259,11 +264,21 @@ dylan_value primitive_byte_allocate_leaf_filled
      dylan_value fill_value, DSINT repeated_size, DSINT repeated_size_offset,
      DBYTE repeated_fill_value)
 {
-  return primitive_byte_allocate_filled(size, class_wrapper,
-                                        number_slots, fill_value,
-                                        repeated_size,
-                                        repeated_size_offset,
-                                        repeated_fill_value);
+  size = round_up_to_word(size * sizeof(D) + repeated_size);
+  if (repeated_size == 0) {
+    return primitive_alloc_leaf_s(size,
+                                  class_wrapper,
+                                  number_slots,
+                                  fill_value);
+  } else {
+    return primitive_alloc_leaf_s_rbf(size,
+                                       class_wrapper,
+                                       number_slots,
+                                       fill_value,
+                                       repeated_size,
+                                       repeated_size_offset,
+                                       repeated_fill_value);
+  }
 }
 
 #define define_repeated_allocator(name, type, alloc_rf, alloc_s_rf) \
