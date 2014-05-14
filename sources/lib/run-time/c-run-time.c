@@ -226,13 +226,12 @@ dylan_value primitive_byte_allocate_filled_terminated
   }
 }
 
-/* This one still zero-terminates. TODO: turn that off */
 dylan_value primitive_byte_allocate_filled
     (DSINT size, dylan_value class_wrapper, DSINT number_slots,
      dylan_value fill_value, DSINT repeated_size, DSINT repeated_size_offset,
      DBYTE repeated_fill_value)
 {
-  size = size * sizeof(D);
+  size = round_up_to_word(size * sizeof(D) + repeated_size);
   if (number_slots == 0) {
     return primitive_alloc_s(size,
                              class_wrapper,
