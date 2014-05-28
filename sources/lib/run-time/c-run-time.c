@@ -557,9 +557,9 @@ extern Wrapper KLbyte_stringGVKdW;
 
 dylan_value primitive_raw_as_string (DBSTR buffer) {
   size_t size = strlen(buffer);
-  dylan_byte_string* string = (dylan_byte_string*)allocate(sizeof(dylan_byte_string) + size + 1);
-  instance_header_setter(&KLbyte_stringGVKdW, (dylan_value*)string);
-  string->size = I(size);
+  BS* string = primitive_alloc_rf(size,
+                                  &KLbyte_stringGVKdW,
+                                  size, 1, &KPunboundVKi);
   memcpy(string->data, buffer, size);
   return((dylan_value)string);
 }
