@@ -199,7 +199,8 @@ D primitive_compare_words(D base1, DSINT offset1,
 }
 
 DSINT round_up_to_word(DSINT val) {
-  return (val + 3) & (-1 << 2);
+  size_t a = sizeof(void *);
+  return (val + a - 1) & ~((unsigned long)a - 1);
 }
 
 D primitive_byte_allocate_filled_terminated
