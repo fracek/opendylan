@@ -803,14 +803,34 @@ define method check-method-local-bindings
     (meth :: <&lambda>)
  => ()
   for-temporary (t in meth.environment)
-    let name = t.named? & t.name;
-    if (name & ~t.used? & ~parameter-ignored?(name))
-      note(<variable-defined-but-not-used>,
-           source-location: fragment-source-location(name),
-           variable-name: name);
-    end if;
+    check-method-temporary(t);
   end for-temporary;
 end;
+
+define method check-method-temporary (t :: <lexical-required-variable>)
+  let name = t.named? & t.name;
+  if (name & ~t.used? & ~parameter-ignored?(name))
+    // TODO: display only when specified. Use different type of warning.
+    /*
+    note(<variable-defined-but-not-used>,
+         source-location: fragment-source-location(name),
+         variable-name: name);
+     */
+  end if;
+end method;
+
+define method check-method-temporary (t :: <lexical-local-variable>)
+  let name = t.named? & t.name;
+  if (name & ~t.used? & ~parameter-ignored?(name))
+    note(<variable-defined-but-not-used>,
+         source-location: fragment-source-location(name),
+         variable-name: name);
+  end if;
+end method;
+
+define method check-method-temporary (t)
+  ignore(t);
+end method;
 
 /// TYPE INFERENCE
 
