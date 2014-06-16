@@ -793,18 +793,18 @@ define method check-method-local-bindings
   ignore(meth);
 end;
 
-define method check-method-local-bindings
-    (meth :: <&keyword-method>)
- => ()
-  ignore(meth);
-end;
+define constant $ignored-parameters = #["next-method", "_rest"];
+
+define function parameter-ignored? (name) => (ignored? :: <boolean>)
+  member?(fragment-name-string(name), $ignored-parameters, test: \=)
+end function;
 
 define method check-method-local-bindings
     (meth :: <&lambda>)
  => ()
   for-temporary (t in meth.environment)
     let name = t.named? & t.name;
-    if (name & ~t.used? & fragment-name-string(name) ~= "next-method")
+    if (name & ~t.used? & ~parameter-ignored?(name))
       note(<variable-defined-but-not-used>,
            source-location: fragment-source-location(name),
            variable-name: name);
