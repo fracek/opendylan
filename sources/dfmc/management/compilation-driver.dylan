@@ -793,10 +793,12 @@ define method check-method-local-bindings
   ignore(meth);
 end;
 
-define constant $ignored-parameters = #["next-method", "_rest"];
+define constant $ignored-fragments = #["next-method"];
 
-define function parameter-ignored? (name) => (ignored? :: <boolean>)
-  member?(fragment-name-string(name), $ignored-parameters, test: \=)
+// we ignore fragments wih name in $ignored-fragments or that begin with _
+define function fragment-ignored? (name) => (ignored? :: <boolean>)
+  let name-string = fragment-name-string(name);
+  name-string[0] = '_' | member?(name-string, $ignored-fragments, test: \=)
 end function;
 
 define method check-method-local-bindings
@@ -809,7 +811,7 @@ end;
 
 define method check-method-temporary (t :: <lexical-required-variable>)
   let name = t.named? & t.name;
-  if (name & ~t.used? & ~parameter-ignored?(name))
+  if (name & ~t.used? & ~fragment-ignored?(name))
     // TODO: display only when specified. Use different type of warning.
     /*
     note(<variable-defined-but-not-used>,
@@ -821,7 +823,7 @@ end method;
 
 define method check-method-temporary (t :: <lexical-local-variable>)
   let name = t.named? & t.name;
-  if (name & ~t.used? & ~parameter-ignored?(name))
+  if (name & ~t.used? & ~fragment-ignored?(name))
     note(<variable-defined-but-not-used>,
          source-location: fragment-source-location(name),
          variable-name: name);
