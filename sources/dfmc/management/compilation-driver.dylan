@@ -812,30 +812,29 @@ define method check-method-local-bindings
     (meth :: <&lambda>)
  => ()
   for-temporary (t in meth.environment)
-    check-method-temporary(t);
+    let name = t.named? & t.name;
+    if (name & ~t.used? & ~fragment-ignored?(name))
+      check-method-temporary(t, name);
+    end if;
   end for-temporary;
 end;
 
-define method check-method-temporary (t :: <lexical-required-variable>)
-  let name = t.named? & t.name;
-  if (name & ~t.used? & ~fragment-ignored?(name))
-    note(<method-argument-not-used>,
-         source-location: fragment-source-location(name),
-         argument-name: name);
-  end if;
+define method check-method-temporary
+    (t :: type-union(<lexical-required-variable>, <lexical-keyword-variable>, <lexical-rest-variable>), name)
+  note(<method-argument-not-used>,
+       source-location: fragment-source-location(name),
+       argument-name: name);
 end method;
 
-define method check-method-temporary (t :: <lexical-local-variable>)
-  let name = t.named? & t.name;
-  if (name & ~t.used? & ~fragment-ignored?(name))
-    note(<variable-defined-but-not-used>,
-         source-location: fragment-source-location(name),
-         variable-name: name);
-  end if;
+define method check-method-temporary (t :: <lexical-local-variable>, name)
+  note(<variable-defined-but-not-used>,
+       source-location: fragment-source-location(name),
+       variable-name: name);
 end method;
 
-define method check-method-temporary (t)
+define method check-method-temporary (t, name)
   ignore(t);
+  ignore(name);
 end method;
 
 /// TYPE INFERENCE
